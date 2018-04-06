@@ -26,6 +26,10 @@ module Mautic
     class << self
 
       def endpoint
+        field_name
+      end
+
+      def field_name
         name.demodulize.underscore.pluralize
       end
 
@@ -36,7 +40,7 @@ module Mautic
       def all(connection)
         @connection = connection
         json = @connection.request(:get, "api/#{endpoint}")
-        json[endpoint].map { |_, j| self.new(@connection, j) }
+        json[field_name].map { |_, j| self.new(@connection, j) }
       end
 
     end
@@ -57,7 +61,7 @@ module Mautic
       return false if changes.blank?
       begin
         json = @connection.request((force && :put || :patch), "api/#{endpoint}/#{id}/edit", { body: to_h })
-        self.attributes = json[endpoint.singularize]
+        self.attributes = json[field_name.singularize]
         clear_changes
       rescue ValidationError => e
         self.errors = e.errors
@@ -69,7 +73,7 @@ module Mautic
     def create
       begin
         json = @connection.request(:post, "api/#{endpoint}/#{id}/new", { body: to_h })
-        self.attributes = json[endpoint.singularize]
+        self.attributes = json[field_name.singularize]
         clear_changes
       rescue ValidationError => e
         self.errors = e.errors
@@ -111,6 +115,10 @@ module Mautic
 
     def endpoint
       self.class.endpoint
+    end
+
+    def field_name
+      self.class.field_name
     end
 
     def assign_attributes(source = {})
