@@ -36,7 +36,7 @@ module Mautic
       def all(connection)
         @connection = connection
         json = @connection.request(:get, "api/#{endpoint}")
-        json[endpoint].map { |j| self.new(@connection, j) }
+        json[endpoint].map { |_, j| self.new(@connection, j) }
       end
 
     end
