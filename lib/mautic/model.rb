@@ -37,14 +37,29 @@ module Mautic
         Proxy.new(connection, endpoint)
       end
 
-      def all(connection)
-        json = connection.request(:get, "api/#{endpoint}")
+      def all(connection, params = {})
+        json = connection.request(:get, "api/#{endpoint}", params: params)
         json[field_name].map { |_, j| self.new(connection, j) }
       end
 
       def create(connection, params = {})
         begin
-          json = connection.request(:post, "api/#{endpoint}/new", { body: params })
+          json = connection.request(:post, "api/#{endpoint}/new", body: params)
+          instance = new(connection, json[field_name.singularize])
+        rescue ValidationError => e
+          if instance.nil?
+            raise e
+          else
+            instance.errors = e.errors
+          end
+        end
+
+        instance
+      end
+
+      def find(connection, id, params = {})
+        begin
+          json = connection.request(:get, "api/#{endpoint}/#{id}", params: params)
           instance = new(connection, json[field_name.singularize])
         rescue ValidationError => e
           if instance.nil?
