@@ -38,9 +38,20 @@ module Mautic
       end
 
       def all(connection)
-        @connection = connection
-        json = @connection.request(:get, "api/#{endpoint}")
-        json[field_name].map { |_, j| self.new(@connection, j) }
+        json = connection.request(:get, "api/#{endpoint}")
+        json[field_name].map { |_, j| self.new(connection, j) }
+      end
+
+      def create(connection, params = {})
+        errors = []
+        begin
+          json = connection.request(:post, "api/#{endpoint}/new", { body: params })
+          instance = new(connection, json[field_name.singularize])
+        rescue ValidationError => e
+          errors = e.errors
+        end
+
+        errors.blank?
       end
 
     end
