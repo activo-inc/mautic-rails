@@ -26,11 +26,50 @@ module Mautic
     class << self
 
       def endpoint
+        field_name
+      end
+
+      def field_name
         name.demodulize.underscore.pluralize
       end
 
       def in(connection)
         Proxy.new(connection, endpoint)
+      end
+
+      def all(connection, params = {})
+        json = connection.request(:get, "api/#{endpoint}", params: params)
+        json[field_name].map { |_, j| self.new(connection, j) }
+      end
+
+      def create(connection, params = {})
+        begin
+          json = connection.request(:post, "api/#{endpoint}/new", body: params)
+          instance = new(connection, json[field_name.singularize])
+        rescue ValidationError => e
+          if instance.nil?
+            raise e
+          else
+            instance.errors = e.errors
+          end
+        end
+
+        instance
+      end
+
+      def find(connection, id, params = {})
+        begin
+          json = connection.request(:get, "api/#{endpoint}/#{id}", params: params)
+          instance = new(connection, json[field_name.singularize])
+        rescue ValidationError => e
+          if instance.nil?
+            raise e
+          else
+            instance.errors = e.errors
+          end
+        end
+
+        instance
       end
 
     end
@@ -51,7 +90,7 @@ module Mautic
       return false if changes.blank?
       begin
         json = @connection.request((force && :put || :patch), "api/#{endpoint}/#{id}/edit", { body: to_h })
-        self.attributes = json[endpoint.singularize]
+        self.attributes = json[field_name.singularize]
         clear_changes
       rescue ValidationError => e
         self.errors = e.errors
@@ -63,7 +102,7 @@ module Mautic
     def create
       begin
         json = @connection.request(:post, "api/#{endpoint}/#{id}/new", { body: to_h })
-        self.attributes = json[endpoint.singularize]
+        self.attributes = json[field_name.singularize]
         clear_changes
       rescue ValidationError => e
         self.errors = e.errors
@@ -107,29 +146,18 @@ module Mautic
       self.class.endpoint
     end
 
-    def assign_attributes(source = nil)
-      @mautic_attributes = []
-      source ||= {}
-      data = {}
+    def field_name
+      self.class.field_name
+    end
 
-      if (fields = source['fields'])
-        if fields['all']
-          @mautic_attributes = fields['all'].collect do |key, value|
-            data[key] = value
-            Attribute.new(alias: key, value: value)
-          end
-        else
-          fields.each do |_group, pairs|
-            pairs.each do |key, attrs|
-              @mautic_attributes << (a = Attribute.new(attrs))
-              data[key] = a.value
-            end
-          end
-        end
-      elsif source
-        data = source
+    def assign_attributes(source = {})
+      @mautic_attributes ||= []
+
+      source.each do |key, value|
+        @mautic_attributes << Attribute.new(key: key, value: value)
       end
-      self.attributes = data
+
+      self.attributes = source
     end
 
   end
