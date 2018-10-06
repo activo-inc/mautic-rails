@@ -3,10 +3,15 @@ module Mautic
 
     self.table_name = 'mautic_connections'
 
-    validates :url, :client_id, :secret, presence: true
-    validates :url, format: URI::regexp(%w(http https))
+    validates :url, presence: true, format: URI::regexp(%w(http https))
+    validates :client_id, :secret, presence: true, unless: :new_record?
 
     alias_attribute :access_token, :token
+
+    # @param [ActionController::Parameters] params
+    def self.receive_webhook(params)
+      WebHook.new(find(params.require(:mautic_id)), params)
+    end
 
     def client
       raise NotImplementedError
@@ -38,6 +43,10 @@ module Mautic
       Proxy.new(self, 'contacts', default_params: { search: '!is:anonymous' })
     end
 
+    def tags
+      Proxy.new(self, 'tags')
+    end
+
     def request(type, path, params = {})
       @last_request = [type, path, params]
       response = raise NotImplementedError
@@ -45,6 +54,14 @@ module Mautic
     end
 
     private
+
+    def callback_url
+      if (conf = Mautic.config.base_url).is_a?(Proc)
+        conf = conf.call(self)
+      end
+
+      URI.parse(conf)
+    end
 
     def parse_response(response)
       case response.status

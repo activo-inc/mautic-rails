@@ -1,4 +1,6 @@
 module Mautic
+  # Virtual model for Mautic endpoint
+  #   @see https://developer.mautic.org/#endpoints
   class Model < OpenStruct
 
     class MauticHash < Hash
@@ -74,12 +76,19 @@ module Mautic
 
     end
 
+    attr_reader :connection
+
+    # @param [Mautic::Connection] connection
     def initialize(connection, hash=nil)
       @connection = connection
       @table = MauticHash.new
       self.attributes = { id: hash['id'], created_at: hash['dateAdded']&.to_time, updated_at: hash['dateModified']&.to_time } if hash
       assign_attributes(hash)
       clear_changes
+    end
+
+    def mautic_id
+      "#{id}/#{@connection.id}"
     end
 
     def save(force = false)
@@ -153,8 +162,23 @@ module Mautic
     def assign_attributes(source = {})
       @mautic_attributes ||= []
 
-      source.each do |key, value|
-        @mautic_attributes << Attribute.new(key: key, value: value)
+      if (fields = source['fields'])
+        if fields['all']
+          @mautic_attributes = fields['all'].collect do |key, value|
+            data[key] = value
+            Attribute.new(alias: key, value: value)
+          end
+        else
+          fields.each do |_group, pairs|
+            next unless pairs.is_a?(Hash)
+            pairs.each do |key, attrs|
+              @mautic_attributes << (a = Attribute.new(attrs))
+              data[key] = a.value
+            end
+          end
+        end
+      elsif source
+        data = source
       end
 
       self.attributes = source

@@ -1,6 +1,7 @@
 # Mautic rails 
 RoR helper / wrapper for Mautic API and forms
 
+*Rails 4.2.8+, 5.1+ compatible*
 ## Usage
 ### Gem provides API connection to your Mautic(s)
   1. Create mautic connection
@@ -60,12 +61,23 @@ There are two options of usage:
   m.data = {} # hash of attributes
   m.push # push data to mautic 
   ```
+  
+### Webhook receiver
+Receive webhook from mautic, parse it and prepare for use.
+
+  1. add concern to your controller
+      
+          include Mautic::ReceiveWebHooks
+  2. in routes must be specify `:mautic_id`, for example:
+  
+          post "webhook/:mautic_id", action: "webhook", on: :collection
+          
 
 ## Installation
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'mautic'
+gem 'mautic', '~>0.1'
 ```
 
 And then execute:
@@ -85,6 +97,7 @@ add to `config/initializers/mautic.rb`:
 Mautic.configure do |config|
   # This is for oauth handshake token url. I need to know where your app listen
   config.base_url = "https://my-rails-app.com"
+  # OR it can be Proc 
   # *optional* This is your default mautic URL - used in form helper 
   config.mautic_url = "https://mautic.my.app"
 end

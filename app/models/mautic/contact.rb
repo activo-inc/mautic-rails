@@ -23,6 +23,9 @@ module Mautic
         data = fields['all']
       end
       super data
+      self.attributes = {
+        tags: (source['tags'] || []).collect{|t| Mautic::Tag.new(@connection, t)}
+      } if source
     end
   end
 end

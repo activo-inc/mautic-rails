@@ -28,9 +28,23 @@ module Mautic
         expect { conn.request(:get, '/api/', {}) }.to raise_exception NotImplementedError
       end
     end
+
+    describe '#callback_url' do
+      subject { described_class.new.send(:callback_url) }
+      it 'default' do
+        is_expected.to be_a URI
+      end
+
+      it 'with proc config' do
+        original = Mautic.config.base_url
+        Mautic.config.base_url = ->(_) { "https://xxxx.com" }
+        is_expected.to eq URI.parse("https://xxxx.com")
+        Mautic.config.base_url = original
+      end
+    end
   end
   RSpec.describe Connections::Oauth2 do
-    let(:oauth2) { FactoryBot.create(:oauth2, token: Faker::Internet.password, refresh_token: Faker::Internet.password) }
+    include_context 'connection'
 
     it '#refresh' do
       stub = stub_request(:post, "#{oauth2.url}/oauth/v2/token").with(body: {
