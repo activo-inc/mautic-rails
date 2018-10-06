@@ -161,6 +161,8 @@ module Mautic
 
     def assign_attributes(source = {})
       @mautic_attributes ||= []
+      source ||= {}
+      data = {}
 
       if (fields = source['fields'])
         if fields['all']
@@ -181,7 +183,7 @@ module Mautic
         data = source
       end
 
-      self.attributes = source
+      self.attributes = data
     end
 
   end
