@@ -162,11 +162,14 @@ module Mautic
     def assign_attributes(source = {})
       @mautic_attributes ||= []
       source ||= {}
-      data = {}
+      data = source
+      source.each do |key, value|
+        @mautic_attributes << Attribute.new(key: key, value: value)
+      end
 
       if (fields = source['fields'])
         if fields['all']
-          @mautic_attributes = fields['all'].collect do |key, value|
+          @mautic_attributes += fields['all'].collect do |key, value|
             data[key] = value
             Attribute.new(alias: key, value: value)
           end
@@ -179,8 +182,6 @@ module Mautic
             end
           end
         end
-      elsif source
-        data = source
       end
 
       self.attributes = data
