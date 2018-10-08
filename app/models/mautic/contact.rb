@@ -15,7 +15,7 @@ module Mautic
       super
       self.attributes = {
         tags: (source['tags'] || []).collect{|t| Mautic::Tag.new(@connection, t)},
-        doNotContact: source.doNotContact,
+        doNotContact: source['doNotContact'],
       } if source
     end
   end
