@@ -18,5 +18,33 @@ module Mautic
         doNotContact: source['doNotContact'],
       } if source
     end
+
+    def add_dnc(comments: '')
+      begin
+        json = @connection.request(:post, "api/contacts/#{id}/dnc/email/add", { body: {comments: comments} })
+        clear_changes
+      rescue ValidationError => e
+        self.errors = e.errors
+      end
+
+      self.errors.blank?
+    end
+
+    def remove_dnc
+      begin
+        json = @connection.request(:post, "api/contacts/#{id}/dnc/email/remove", { body: {} })
+        clear_changes
+      rescue ValidationError => e
+        self.errors = e.errors
+      end
+
+      self.errors.blank?
+    end
+
+    def dnc?
+      doNotContact.present?
+    end
+
+
   end
 end
