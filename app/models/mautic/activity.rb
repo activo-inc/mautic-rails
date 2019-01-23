@@ -15,8 +15,8 @@ module Mautic
       end
 
       def email_sent_all(connection, params = {})
-        email_sent_params = {filters: {includeEvents: ['email.sent']}}
-        all(connection, params.merge(email_sent_params))
+        params[:filters][:includeEvents] = ['email.sent']
+        all(connection, params)
       end
     end
   end
