@@ -10,15 +10,15 @@ module Mautic
       @connection.request :post, %(api/#{endpoint}/#{id}/contact/#{contact_id}/remove)
     end
 
-    def self.add_contact(stage: nil, contact: nil)
+    def self.add_contact(connection: nil, stage: nil, contact: nil)
       return if stage.blank? || contact.blank?
-      stage = stage.is_a?(self) ? stage : self.find(stage)
+      stage = stage.is_a?(self) ? stage : self.find(connection, stage)
       stage.add_contact contact
     end
 
-    def self.remove_contact(stage: nil, contact: nil)
+    def self.remove_contact(connection: nil, stage: nil, contact: nil)
       return if stage.blank? || contact.blank?
-      stage = stage.is_a?(self) ? stage : self.find(stage)
+      stage = stage.is_a?(self) ? stage : self.find(connection, stage)
       stage.remove_contact contact
     end
   end
