@@ -1,5 +1,10 @@
 module Mautic
   class Stage < Model
+    def self.all(connection, params = {})
+      json = connection.request(:get, "api/#{endpoint}", params: params)
+      json[field_name].map { |j| self.new(connection, j) }
+    end
+
     def add_contact(contact)
       contact_id = contact.is_a?(Mautic::Contact) ? contact.id : contact
       @connection.request :post, %(api/#{endpoint}/#{id}/contact/#{contact_id}/add)
