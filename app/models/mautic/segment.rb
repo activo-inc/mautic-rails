@@ -1,26 +1,18 @@
 module Mautic
   class Segment < Model
 
-    def add_contact(contact)
-      contact_id = contact.is_a?(Mautic::Contact) ? contact.id : contact
-      @connection.request(:post, "api/segments/#{id}/contact/#{contact_id}/add")
+    #セグメントでのfindの挙動が他と違うので、オーバーライド
+    def find(connection, segment)
+      segment = @connection.request :get, %(api/segments/#{segment})
+      return segment
     end
 
-    def remove_contact(contact)
-      contact_id = contact.is_a?(Mautic::Contact) ? contact.id : contact
-      @connection.request(:post, "api/segments/#{id}/contact/#{contact_id}/remove")
+    def add_contact(connection: nil, segment: nil, contact: nil)
+      connection.request :post, %(api/segments/#{segment}/contact/#{contact}/add)
     end
 
-    def self.add_contact(connection: nil, segment: nil, contact: nil)
-      return if segment.blank? || contact.blank?
-      segment = segment.is_a?(self) ? segment : self.find(connection, segment)
-      segment.add_contact contact
-    end
-
-    def self.remove_contact(connection: nil, segment: nil, contact: nil)
-      return if segment.blank? || contact.blank?
-      segment = segment.is_a?(self) ? segment : self.find(connection, segment)
-      segment.remove_contact contact
+    def remove_contact(connection: nil, segment: nil, contact: nil)
+      connection.request :post, %(api/segments/#{segment}/contact/#{contact}/remove)
     end
 
   end
