@@ -7,16 +7,12 @@ module Mautic
       Proxy.new(connection, endpoint, default_params: { search: '!is:anonymous' })
     end
 
-    def self.get_segment_memberships(contact)
-      contact_id = contact.is_a?(Mautic::Contact) ? contact.id : contact
+    def self.get_segment_memberships
+      contact_id = self.is_a?(Mautic::Contact) ? self.id : self
       segments = @connection.request(:get, %(api/contacts/#{contact_id}/segments))["lists"].values
       return segments
     end
-
-    def name
-      "#{firstname} #{lastname}"
-    end
-
+    
     def assign_attributes(source = {})
       super
       self.attributes = {
