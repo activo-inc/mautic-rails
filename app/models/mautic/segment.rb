@@ -7,11 +7,11 @@ module Mautic
       return segment
     end
 
-    def add_contact(connection: nil, segment: nil, contact: nil)
+    def self.add_contact(connection: nil, segment: nil, contact: nil)
       connection.request :post, %(api/segments/#{segment}/contact/#{contact}/add)
     end
 
-    def remove_contact(connection: nil, segment: nil, contact: nil)
+    def self.remove_contact(connection: nil, segment: nil, contact: nil)
       connection.request :post, %(api/segments/#{segment}/contact/#{contact}/remove)
     end
 
