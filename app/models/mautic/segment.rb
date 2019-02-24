@@ -2,7 +2,7 @@ module Mautic
   class Segment < Model
 
     #セグメントでのfindの挙動が他と違うので、オーバーライド
-    def find(connection: nil, segment: nil)
+    def self.find(connection: nil, segment: nil)
       segment = connection.request :get, %(api/segments/#{segment})
       return segment
     end
