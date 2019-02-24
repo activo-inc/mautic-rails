@@ -45,9 +45,9 @@ module Mautic
       doNotContact.present?
     end
 
-    def self.get_segment_memberships(contact)
+    def self.get_segment_memberships(contact, connection)
       contact_id = contact.is_a?(Mautic::Contact) ? contact.id : contact
-      segments = @connection.request(:get, %(api/contacts/#{contact_id}/segments))["lists"].values
+      segments = connection.request(:get, %(api/contacts/#{contact_id}/segments))["lists"].values
       return segments
     end
 
