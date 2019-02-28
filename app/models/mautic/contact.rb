@@ -51,5 +51,9 @@ module Mautic
       return segments
     end
 
+    def get_segment_memberships
+      @connection.request(:get, %(api/contacts/#{id}/segments))["lists"].values
+    end
+
   end
 end
