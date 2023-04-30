@@ -6,7 +6,7 @@ module Mautic
       end
 
       def field_name
-        'events' 
+        'events'
       end
 
       def all(connection, params = {})

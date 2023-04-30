@@ -84,6 +84,11 @@ module Mautic
       @connection.request(:get, %(api/contacts/#{id}/segments))["lists"].values
     end
 
+    def activities(params = {})
+      json = @connection.request(:get, "api/contacts/#{id}/activity", params: params)
+      json['events'].map { |j| self.new(@connection, j) }
+    end
+
     private
     
     def clear_change
