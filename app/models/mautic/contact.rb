@@ -86,7 +86,7 @@ module Mautic
 
     def activities(params = {})
       json = @connection.request(:get, "api/contacts/#{id}/activity", params: params)
-      json['events'].map { |j| self.new(@connection, j) }
+      json['events'].map { |j| Mautic::Activity.new(@connection, j) }
     end
 
     private
