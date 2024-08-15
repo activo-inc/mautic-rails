@@ -52,14 +52,14 @@ module Mautic
         data["contact"]["fields"].delete("all")
         expect(data["contact"]["fields"]).not_to include "all"
 
-        stub_request(:get, "#{oauth2.url}/api/contacts/47")
-                 .and_return({
-                               status: 200,
-                               body: data.to_json,
-                               headers: { 'Content-Type' => 'application/json' }
-                             })
-        contact = oauth2.contacts.find(47)
-	expect(contact.id).to eq 47
+        stub_request(:get, "#{oauth2.url}/api/contacts/1")
+          .and_return({
+                        status: 200,
+                        body: data.to_json,
+                        headers: { 'Content-Type' => 'application/json' }
+                      })
+        contact = oauth2.contacts.find(1)
+        expect(contact.id).to eq 1
         expect(contact.first_name).to eq 'Jim'
         expect(contact.twitter).to eq 'jimcontact'
       end
@@ -200,6 +200,26 @@ module Mautic
         end
 
       end
+
+      context "#count" do
+        before :each do
+          stub_request(:get, /#{oauth2.url}\/api\/contacts.*/)
+            .and_return({
+                          status: 200,
+                          body: { 'total' => '99', 'contacts' => {} }.to_json,
+                          headers: { 'Content-Type' => 'application/json' }
+                        })
+        end
+        it "from cache" do
+          proxy = oauth2.contacts
+          expect { proxy.first }.not_to raise_error
+          expect(proxy.count).to eq 99
+        end
+
+        it "get first and read from response" do
+          expect(oauth2.contacts.count).to eq 99
+        end
+      end
     end
 
     context 'forms' do
@@ -270,6 +290,12 @@ module Mautic
         expect { forms = oauth2.forms.all }.not_to raise_error
         expect(stub).to have_been_made
         expect(forms.size).to eq 1
+      end
+    end
+
+    context 'tags' do
+      it 'should return proxy' do
+        expect(oauth2.tags).to be_a Proxy
       end
     end
 

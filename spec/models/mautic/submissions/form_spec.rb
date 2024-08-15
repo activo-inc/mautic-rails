@@ -23,8 +23,23 @@ RSpec.describe Mautic::Submissions::Form do
   it '#contact' do
     expect(c = subject.contact).to be_a Mautic::Contact
     expect(c.email).to eq "email@formsubmit.com"
+  end
 
+  it '#referer' do
+    expect(subject.referer).to eq "http://mautic-gh.com/index_dev.php/s/forms/preview/4"
+  end
 
+  it "#results" do
+    expect(subject.results).to be_a Hash
+    expect(subject.results).to include email: "email@formsubmit.com"
+  end
+
+  it '#ip_address' do
+    expect(subject.ip_address).to include ip: '92.63.94.18'
+  end
+
+  it '#ip_details' do
+    expect(subject.ip_details).to include countryIsoCode: 'LV'
   end
 
 end

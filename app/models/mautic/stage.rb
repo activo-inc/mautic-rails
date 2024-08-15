@@ -5,26 +5,22 @@ module Mautic
       json[field_name].map { |j| self.new(connection, j) }
     end
 
-    def add_contact(contact)
-      contact_id = contact.is_a?(Mautic::Contact) ? contact.id : contact
-      @connection.request :post, %(api/#{endpoint}/#{id}/contact/#{contact_id}/add)
+    # @see https://developer.mautic.org/#add-contact-to-a-stage
+    # @param [Integer] id of Mautic::Contact
+    def add_contact!(id)
+      json = @connection.request(:post, "api/stages/#{self.id}/contact/#{id}/add")
+      json["success"]
+    rescue RequestError => _e
+      false
     end
 
-    def remove_contact(contact)
-      contact_id = contact.is_a?(Mautic::Contact) ? contact.id : contact
-      @connection.request :post, %(api/#{endpoint}/#{id}/contact/#{contact_id}/remove)
-    end
-
-    def self.add_contact(connection: nil, stage: nil, contact: nil)
-      return if stage.blank? || contact.blank?
-      stage = stage.is_a?(self) ? stage : self.find(connection, stage)
-      stage.add_contact contact
-    end
-
-    def self.remove_contact(connection: nil, stage: nil, contact: nil)
-      return if stage.blank? || contact.blank?
-      stage = stage.is_a?(self) ? stage : self.find(connection, stage)
-      stage.remove_contact contact
+    # @see https://developer.mautic.org/#remove-contact-from-a-stage
+    # @param [Integer] id of Mautic::Contact
+    def remove_contact!(id)
+      json = @connection.request(:post, "api/stages/#{self.id}/contact/#{id}/remove")
+      json["success"]
+    rescue RequestError => _e
+      false
     end
   end
 end
