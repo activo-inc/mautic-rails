@@ -11,12 +11,12 @@ module Mautic
         })
       end
 
-      def authorize
-        client.auth_code.authorize_url(redirect_uri: callback_url)
+      def authorize(context)
+        client.auth_code.authorize_url(redirect_uri: callback_url(context))
       end
 
-      def get_code(code)
-        client.auth_code.get_token(code, redirect_uri: callback_url)
+      def get_code(code, context)
+        client.auth_code.get_token(code, redirect_uri: callback_url(context))
       end
 
       def connection
@@ -27,6 +27,8 @@ module Mautic
         @connection = connection.refresh!
         update(token: @connection.token, refresh_token: @connection.refresh_token)
         @connection
+      rescue StandardError
+        raise ::Mautic::TokenExpiredError, "your refresh_token is probably expired - re-authorize your connection"
       end
 
       def request(type, path, params = {})
@@ -37,9 +39,10 @@ module Mautic
 
       private
 
-      def callback_url
+      def callback_url(context)
         uri = super
-        uri.path = Mautic::Engine.routes.url_helpers.oauth2_connection_path(self)
+        # uri.path = Mautic::Engine.routes.url_helpers.oauth2_connection_path(self)
+        uri.path = context.url_for(action: "oauth2", id: self , only_path: true)
         uri.to_s
       end
 

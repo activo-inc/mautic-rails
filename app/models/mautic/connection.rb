@@ -10,18 +10,18 @@ module Mautic
 
     # @param [ActionController::Parameters] params
     def self.receive_webhook(params)
-      WebHook.new(find(params.require(:mautic_id)), params)
+      WebHook.new(find(params.require(:mautic_connection_id)), params)
     end
 
     def client
       raise NotImplementedError
     end
 
-    def authorize
+    def authorize(context)
       raise NotImplementedError
     end
 
-    def get_code(code)
+    def get_code(code, context)
       raise NotImplementedError
     end
 
@@ -59,7 +59,7 @@ module Mautic
 
     private
 
-    def callback_url
+    def callback_url(context)
       if (conf = Mautic.config.base_url).is_a?(Proc)
         conf = conf.call(self)
       end
@@ -70,29 +70,40 @@ module Mautic
     def parse_response(response)
       case response.status
       when 400
-        raise Mautic::ValidationError.new(response)
+        raise Mautic::ValidationError, response
+      when 401
+        try_to_refresh_and_parse(response)
       when 404
-        raise Mautic::RecordNotFound.new(response)
+        raise Mautic::RecordNotFound, response
       when 200, 201
-        json = JSON.parse(response.body) rescue {}
-        Array(json['errors']).each do |error|
-          case error['code'].to_i
-          when 401
-            raise Mautic::TokenExpiredError.new(response) if @try_to_refresh
-            @try_to_refresh = true
-            refresh!
-            json = request(*@last_request)
-          when 404
-            raise Mautic::RecordNotFound.new(response)
-          else
-            raise Mautic::RequestError.new(response)
-          end
-        end
+        handle_success_response response
       else
-        raise Mautic::RequestError.new(response)
+        raise Mautic::RequestError, response
+      end
+    end
+
+    def handle_success_response(response)
+      json = JSON.parse(response.body) rescue {}
+      Array(json['errors']).each do |error|
+        case error['code'].to_i
+        when 401
+          json = try_to_refresh_and_parse(response)
+        when 404
+          raise Mautic::RecordNotFound, response
+        else
+          raise Mautic::RequestError, response
+        end
       end
 
       json
+    end
+
+    def try_to_refresh_and_parse(response)
+      raise Mautic::TokenExpiredError, response.response&.body if @try_to_refresh
+
+      @try_to_refresh = true
+      refresh!
+      request(*@last_request)
     end
 
   end

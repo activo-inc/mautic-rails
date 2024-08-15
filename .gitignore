@@ -11,3 +11,5 @@ Gemfile.lock
 coverage
 /.ctags
 /tags
+doc/
+.yardoc/
