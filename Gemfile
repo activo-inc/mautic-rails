@@ -15,3 +15,7 @@ gemspec
 gem 'simplecov', require: false, group: :test
 # gem "rails", "4.2.8"
 gem "rails", "~> 6"
+
+gem "mutex_m", "~> 0.3.0", groups: [:development, :test]
+
+gem "observer", "~> 0.1.2", groups: [:development, :test]

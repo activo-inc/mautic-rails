@@ -1,9 +1,23 @@
+require "logger"
 require "oauth2"
 require "ostruct"
+require "active_support/ordered_options"
 require "mautic/engine"
 
 module Mautic
-  include ::ActiveSupport::Configurable
+  class << self
+    def config
+      @config ||= ActiveSupport::OrderedOptions.new
+    end
+
+    def config=(value)
+      @config = value
+    end
+
+    def configure
+      yield config
+    end
+  end
 
   autoload :FormHelper, 'mautic/form_helper'
   autoload :Proxy, 'mautic/proxy'
