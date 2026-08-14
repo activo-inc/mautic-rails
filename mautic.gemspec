@@ -23,7 +23,11 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'rails', '>= 6.0.0'
   # s.add_dependency 'oauth', '~> 0.5.3'
-  s.add_dependency 'oauth2', '~> 1.4.9'
+  # NOTE: oauth2 1.4.x は GHSA-cvh2-x9f9-9wg2（プロトコル相対リダイレクトで Bearer トークンが
+  #       漏洩する）の影響を受けるため 2.0.22 以上を要求する。
+  #       2.x では :auth_scheme の既定が :request_body から :basic_auth に変わるため、
+  #       app/models/mautic/connections/oauth2.rb で従来どおり :request_body を明示している。
+  s.add_dependency 'oauth2', '~> 2.0', '>= 2.0.22'
   s.add_dependency 'ostruct', '~> 0.5.3'
   s.add_dependency 'rest-client', '~> 2.0'
 
