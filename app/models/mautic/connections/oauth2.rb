@@ -7,7 +7,11 @@ module Mautic
           site: url,
           authorize_url: 'oauth/v2/authorize',
           token_url: 'oauth/v2/token',
-          raise_errors: false
+          raise_errors: false,
+          # NOTE: oauth2 2.0 で :auth_scheme の既定が :request_body から :basic_auth に変わった。
+          #       Mautic のトークンエンドポイントに対する認証方式を 1.4.x 時点の挙動のまま保つため
+          #       :request_body を明示する（client_id / secret をリクエストボディで送る）。
+          auth_scheme: :request_body
         })
       end
 
